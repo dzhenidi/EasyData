@@ -7,24 +7,27 @@ require 'byebug'
 class SQLObject
 
   def self.columns
-      result = DBConnection.execute2(<<-SQL)
+    return @columns if @columns
+      cols = DBConnection.execute2(<<-SQL).first
         SELECT
           *
         FROM
           '#{table_name}'
       SQL
 
-      result.first.map{|name| name.to_sym}
+      cols.map!{|name| name.to_sym}
+      @columns = cols
   end
 
+  # the user of SQLObject will have to call finalize! at the end of
+  # their subclass definition, in order to have getter/setter methods defined
   def self.finalize!
-    column_names = columns
-    column_names.each do |col|
-      # debugger
+    columns.each do |col|
       define_method("#{col.to_s}=") do |val|
         attributes
         @attributes[col] = val
       end
+
       define_method(col) {
         attributes
         @attributes[col] }
@@ -40,7 +43,6 @@ class SQLObject
   end
 
   def self.all
-    # debugger
     results = DBConnection.execute(<<-SQL)
       SELECT
         *
@@ -89,7 +91,7 @@ class SQLObject
     col_names = cols.join(", ")
     question_marks = (["?"] * (cols.length   )).join(",")
     attributes = attribute_values[1..-1]
-    # debugger
+
     DBConnection.execute(<<-SQL, *attributes)
       INSERT INTO
         #{self.class.table_name} (#{col_names})
@@ -105,7 +107,7 @@ class SQLObject
     col_names = cols.map{ |col| "#{col}=?"}.join(", ")
     attributes = attribute_values[1..-1]
     attributes << self.id
-    # debugger
+
     DBConnection.execute(<<-SQL, *attributes)
       UPDATE
         #{self.class.table_name}
