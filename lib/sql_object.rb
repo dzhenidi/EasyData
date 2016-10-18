@@ -1,8 +1,7 @@
 require_relative 'db_connection'
 require 'active_support/inflector'
-require 'byebug'
-# NB: the attr_accessor we wrote in phase 0 is NOT used in the rest
-# of this project. It was only a warm up.
+
+
 
 class SQLObject
 
@@ -12,25 +11,20 @@ class SQLObject
         SELECT
           *
         FROM
-          '#{table_name}'
+          #{table_name}
       SQL
-
-      cols.map!{|name| name.to_sym}
+      cols.map!(&:to_sym)
       @columns = cols
   end
 
-  # the user of SQLObject will have to call finalize! at the end of
-  # their subclass definition, in order to have getter/setter methods defined
   def self.finalize!
-    columns.each do |col|
-      define_method("#{col.to_s}=") do |val|
-        attributes
-        @attributes[col] = val
+    columns.each do |name|
+      define_method("#{name}=") do |name|
+        self.attributes[name] = val
       end
 
-      define_method(col) {
-        attributes
-        @attributes[col] }
+      define_method(name) {
+        self.attributes[name] }
     end
   end
 
@@ -45,15 +39,16 @@ class SQLObject
   def self.all
     results = DBConnection.execute(<<-SQL)
       SELECT
-        *
+        #{table_name}.*
       FROM
-        "#{table_name}"
+        #{table_name}
     SQL
+
     parse_all(results)
   end
 
   def self.parse_all(results)
-    results.map {|row| self.new(row)}
+    results.map { |row| self.new(row) }
   end
 
   def self.find(id)
@@ -61,18 +56,22 @@ class SQLObject
       SELECT
         *
       FROM
-        "#{table_name}"
+        #{table_name}
       WHERE
-        "id" = ?
+        #{table_name}.id = ?
     SQL
+
     parse_all(results).first
   end
 
   def initialize(params = {})
-    params.each do |k,v|
-      k = k.to_sym
-      raise "unknown attribute '#{k}'" unless self.class.columns.include?(k)
-      self.send("#{k}=".to_sym, v)
+    params.each do |attr_name, value|
+      attr_name = attr_name.to_sym
+      if self.class.columns.include?(attr_name)
+        self.send("#{attr_name}=".to_sym, value)
+      else
+        raise "unknown attribute '#{attr_name}'"
+      end
     end
   end
 
@@ -81,16 +80,14 @@ class SQLObject
   end
 
   def attribute_values
-    self.class.columns.map do |col|
-      send(col)
-    end
+    self.class.columns.map { |attr| send(attr) }
   end
 
   def insert
-    cols = self.class.columns[1..-1]
-    col_names = cols.join(", ")
-    question_marks = (["?"] * (cols.length   )).join(",")
-    attributes = attribute_values[1..-1]
+    columns = self.class.columns.drop(1)
+    col_names = columns.join(", ")
+    question_marks = (["?"] * (columns.length)).join(", ")
+    attributes = attribute_values.drop(1)
 
     DBConnection.execute(<<-SQL, *attributes)
       INSERT INTO
@@ -103,28 +100,22 @@ class SQLObject
   end
 
   def update
-    cols = self.class.columns[1..-1]
+    cols = self.class.columns.drop(1)
     col_names = cols.map{ |col| "#{col}=?"}.join(", ")
-    attributes = attribute_values[1..-1]
-    attributes << self.id
 
-    DBConnection.execute(<<-SQL, *attributes)
+    DBConnection.execute(<<-SQL, *attribute_values, id)
       UPDATE
         #{self.class.table_name}
       SET
         #{col_names}
       WHERE
-        id = ?
+        #{self.class.table_name}.id = ?
     SQL
 
     self.id = DBConnection.last_insert_row_id
   end
 
   def save
-    if self.id
-      update
-    else
-      insert
-    end
+    id.nil? ? insert : update
   end
 end

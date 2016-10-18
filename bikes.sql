@@ -1,4 +1,4 @@
-CREATE TABLE cats (
+CREATE TABLE bikes (
   id INTEGER PRIMARY KEY,
   name VARCHAR(255) NOT NULL,
   owner_id INTEGER,
@@ -23,21 +23,21 @@ CREATE TABLE houses (
 INSERT INTO
   houses (id, address)
 VALUES
-  (1, "26th and Guerrero"), (2, "Dolores and Market");
+  (1, "3rd and Union"), (2, "7th ave and 9th");
 
 INSERT INTO
   humans (id, fname, lname, house_id)
 VALUES
-  (1, "Devon", "Watts", 1),
-  (2, "Matt", "Rubens", 1),
-  (3, "Ned", "Ruggeri", 2),
-  (4, "Catless", "Human", NULL);
+  (1, "Frank", "W", 1),
+  (2, "Jill", "R", 1),
+  (3, "Tony", "F", 2),
+  (4, "Bikeless", "Human", NULL);
 
 INSERT INTO
-  cats (id, name, owner_id)
+  bikes (id, name, owner_id)
 VALUES
-  (1, "Breakfast", 1),
-  (2, "Earl", 2),
-  (3, "Haskell", 3),
-  (4, "Markov", 3),
-  (5, "Stray Cat", NULL);
+  (1, "Jamis Aurora", 1),
+  (2, "Surley LongHaulTrucker", 2),
+  (3, "Raleigh Talus", 3),
+  (4, "Motobecane Mirage", 3),
+  (5, "road bike", NULL);
