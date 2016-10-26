@@ -8,7 +8,7 @@ Methods
 -------
 
 ###CRUD methods:
-* `#create`
+* `::create`
 * `#update`
 * `#destroy`
 
@@ -27,7 +27,7 @@ Methods
 To use:
 -------
 
-* call `#finalize!` at the end of your subclass definition, in order to have getter/setter methods defined
+* Call `#finalize!` at the end of your subclass definition, in order to have getter/setter methods defined
 
 
 EasyData uses:
@@ -38,12 +38,12 @@ EasyData uses:
 
 Implementation Details:
 -----------------------
-* uses `ActiveSupport` to infer the name of the table given the model,
+* Uses `ActiveSupport` to infer the name of the table given the model,
 use `::table_name=` to override the default.
-* the associations methods provide default values for the options argument   
+* The associations methods provide default values for the options argument   
 
 TODO:
 -----
-* expand query interface to include `::includes` and `::joins`
-* make query methods lazy and stackable
-* include validations
+* Expand query interface to include `::includes` and `::joins`
+* Make query methods lazy and stackable
+* Include validations

@@ -19,7 +19,7 @@ class SQLObject
 
   def self.finalize!
     columns.each do |name|
-      define_method("#{name}=") do |name|
+      define_method("#{name}=") do |val|
         self.attributes[name] = val
       end
 
