@@ -42,18 +42,18 @@ To demo:
 **2.** Load pry, or your preferred REPL, from the /lib directory
 
 **3.** Load the demo script
-```
+```ruby
 $pry
 [1] pry(main)> load 'demo.rb'
 welcome to EasyData!
 ```
 **4.** Test the methods listed above, e.g.:
-```pry
+```ruby
 [3] pry(main)> Bike.where(id: 1)[0].biker.fname
 => "Frank"
 ```
 **5.** To see what else is in the demo database schema:
-```
+```ruby
 $ sqlite3 bikelove.db
 ```
 
@@ -70,6 +70,23 @@ Implementation Details:
 * Uses `ActiveSupport` to infer the name of the table given the model,
 use `::table_name=` to override the default.
 * The associations methods provide default values for the options argument   
+
+```ruby
+class BelongsToOptions < AssocOptions
+  def initialize(name, options = {})
+    defaults = {
+      :foreign_key => "#{name}_id".to_sym,
+      :primary_key => :id,
+      :class_name => name.to_s.camelcase
+    }
+
+    options = defaults.merge(options)
+    options.keys.each do |key|
+      send("#{key}=", options[key])
+    end
+  end
+end
+```
 
 TODO:
 -----
